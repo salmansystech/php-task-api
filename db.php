@@ -2,6 +2,7 @@
 
 function getDb(): PDO
 {
+    // Keep the DB file next to the script so `php -S` demos work with zero config.
     $dbFile = __DIR__ . '/tasks.sqlite';
     $isNew = !file_exists($dbFile);
 
