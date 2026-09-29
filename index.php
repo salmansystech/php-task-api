@@ -50,6 +50,36 @@ switch ($method) {
         echo json_encode(['id' => $pdo->lastInsertId(), 'title' => $title, 'done' => 0]);
         break;
 
+    case 'PATCH':
+    case 'PUT':
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Task id required']);
+            break;
+        }
+        $body = json_decode(file_get_contents('php://input'), true);
+        $fields = [];
+        $values = [];
+        if (array_key_exists('title', $body ?? [])) {
+            $fields[] = 'title = ?';
+            $values[] = $body['title'];
+        }
+        if (array_key_exists('done', $body ?? [])) {
+            $fields[] = 'done = ?';
+            $values[] = (int) $body['done'];
+        }
+        if (empty($fields)) {
+            http_response_code(422);
+            echo json_encode(['error' => 'Nothing to update']);
+            break;
+        }
+        $values[] = $id;
+        $pdo->prepare('UPDATE tasks SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($values);
+        $stmt = $pdo->prepare('SELECT * FROM tasks WHERE id = ?');
+        $stmt->execute([$id]);
+        echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
+        break;
+
     default:
         http_response_code(405);
         echo json_encode(['error' => 'Method not allowed']);
