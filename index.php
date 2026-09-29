@@ -36,6 +36,20 @@ switch ($method) {
         }
         break;
 
+    case 'POST':
+        $body = json_decode(file_get_contents('php://input'), true);
+        $title = trim($body['title'] ?? '');
+        if ($title === '') {
+            http_response_code(422);
+            echo json_encode(['error' => 'title is required']);
+            break;
+        }
+        $stmt = $pdo->prepare('INSERT INTO tasks (title, done, created_at) VALUES (?, 0, ?)');
+        $stmt->execute([$title, date('c')]);
+        http_response_code(201);
+        echo json_encode(['id' => $pdo->lastInsertId(), 'title' => $title, 'done' => 0]);
+        break;
+
     default:
         http_response_code(405);
         echo json_encode(['error' => 'Method not allowed']);
