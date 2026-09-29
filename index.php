@@ -17,3 +17,26 @@ if (($segments[0] ?? '') !== 'tasks') {
 }
 
 $id = $segments[1] ?? null;
+
+switch ($method) {
+    case 'GET':
+        if ($id) {
+            $stmt = $pdo->prepare('SELECT * FROM tasks WHERE id = ?');
+            $stmt->execute([$id]);
+            $task = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$task) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Task not found']);
+                break;
+            }
+            echo json_encode($task);
+        } else {
+            $tasks = $pdo->query('SELECT * FROM tasks ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($tasks);
+        }
+        break;
+
+    default:
+        http_response_code(405);
+        echo json_encode(['error' => 'Method not allowed']);
+}
