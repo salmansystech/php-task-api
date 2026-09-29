@@ -80,6 +80,16 @@ switch ($method) {
         echo json_encode($stmt->fetch(PDO::FETCH_ASSOC));
         break;
 
+    case 'DELETE':
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Task id required']);
+            break;
+        }
+        $pdo->prepare('DELETE FROM tasks WHERE id = ?')->execute([$id]);
+        http_response_code(204);
+        break;
+
     default:
         http_response_code(405);
         echo json_encode(['error' => 'Method not allowed']);
